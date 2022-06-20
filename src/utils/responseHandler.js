@@ -1,4 +1,6 @@
-const { app: { stage } } = require('../config')
+const config = require('../config')
+const mailer = require('./mailer')
+const logger = require('./logger')
 
 module.exports = (data, headers) => {
   const response = (statusCode, responseData) => {
@@ -17,14 +19,20 @@ module.exports = (data, headers) => {
 
   return {
     success: (statusCode = 200) => {
+      logger.info({ title: 'PROCESS COMPLETED SUCCESSFULLY' })
       return response(statusCode, data)
     },
-    error: (statusCode = 500) => {
+    error: async (statusCode = 500) => {
       const { message, stack } = data
-      const simpleError = { message }
-      const fullError = { message, ...data, stack }
-      console.error(`PROCESS ENDED\n${JSON.stringify(fullError, null, 2)}`)
-      return response(statusCode, stage !== 'prd' ? fullError : simpleError)
+      const error = { message, ...data, stack }
+      logger.error({ title: 'PROCESS ENDED WITH ERROR', message, data: error })
+      if (config.services.mailer.errorNotificationRecipientAddres) {
+        await mailer().sendErrorNotification(error)
+      }
+      if (config.app.stage === 'prd') {
+        return response(statusCode, { message })
+      }
+      return response(statusCode, error)
     }
   }
 }

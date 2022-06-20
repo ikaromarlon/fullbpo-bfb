@@ -46,7 +46,11 @@ const emptyProperties = (data, forceEmptyFirstLevelObjects = false) => {
 
 const multiply = (value1, value2) => (((value1 * 100) * (value2 * 100)) / 100) / 100
 
-const sleep = (seconds) => new Promise(resolve => setTimeout(resolve, secondsToMilliseconds(seconds)))
+const sleep = (seconds) => {
+  if (seconds) return new Promise(resolve => setTimeout(resolve, secondsToMilliseconds(seconds)))
+}
+
+const stripTags = (value) => value.replace(/<[^>]*>?/gm, '')
 
 module.exports = {
   getNumbers,
@@ -60,5 +64,6 @@ module.exports = {
   tryJsonParse,
   emptyProperties,
   multiply,
-  sleep
+  sleep,
+  stripTags
 }
