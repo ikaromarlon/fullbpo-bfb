@@ -29,13 +29,17 @@ module.exports = Object.freeze({
   services: {
     omie: {
       providerName: 'Omie',
-      ingestionPeriod: 2, /** days back */
+      /** days back */
+      ingestionPeriod: 2,
       apiBaseUrl: 'https://app.omie.com.br/api/v1',
-      waitSecondsBeforeNextPageRequest: Number.parseInt(env.WAIT_SECONDS_BEFORE_NEXT_OMIE_PAGE_REQUEST) ?? 0
+      maxRequestPerPeriod: 200,
+      /** in seconds */
+      requestPeriod: 60
     },
     mailer: {
       defaultSender: `no-reply@${env.APP_DOMAIN}`,
-      errorNotificationRecipientAddres: env.ERROR_NOTIFICATION_RECIPIENT_ADDRESS || null
+      errorNotificationRecipientAddress: env.ERROR_NOTIFICATION_RECIPIENT_ADDRESS || '',
+      errorNotificationRecipientAddressCopy: env.ERROR_NOTIFICATION_RECIPIENT_ADDRESS_COPY || ''
     }
   },
   flags: {
