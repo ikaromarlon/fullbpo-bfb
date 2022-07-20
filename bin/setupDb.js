@@ -50,7 +50,7 @@ module.exports = async (arg, config) => {
 
     console.log('Updating contracts indexes...')
     await db.collection('contracts').createIndexes([
-      { name: 'companyId_externalId_departmentId_productServiceId_municipalServiceCode', key: { companyId: 1, externalId: 1, departmentId: 1, productServiceId: 1, municipalServiceCode: 1 }, unique: true }
+      { name: 'companyId_customerId_externalId_departmentId_productServiceId_municipalServiceCode', key: { companyId: 1, customerId: 1, externalId: 1, departmentId: 1, productServiceId: 1, municipalServiceCode: 1 }, unique: true }
     ])
     console.log('done!')
 
@@ -68,13 +68,13 @@ module.exports = async (arg, config) => {
 
     console.log('Updating accounts-payable indexes...')
     await db.collection('accounts-payable').createIndexes([
-      { name: 'companyId_customerId_titleId_externalId_entryCode_departmentId_categoryId', key: { companyId: 1, customerId: 1, titleId: 1, externalId: 1, entryCode: 1, departmentId: 1, categoryId: 1 }, unique: true }
+      { name: 'companyId_customerId_titleId_externalId_departmentId_categoryId', key: { companyId: 1, customerId: 1, titleId: 1, externalId: 1, departmentId: 1, categoryId: 1 }, unique: true }
     ])
     console.log('done!')
 
     console.log('Updating accounts-receivable indexes...')
     await db.collection('accounts-receivable').createIndexes([
-      { name: 'companyId_customerId_titleId_externalId_entryCode_departmentId_categoryId', key: { companyId: 1, customerId: 1, titleId: 1, externalId: 1, entryCode: 1, departmentId: 1, categoryId: 1 }, unique: true }
+      { name: 'companyId_customerId_titleId_externalId_departmentId_categoryId', key: { companyId: 1, customerId: 1, titleId: 1, externalId: 1, departmentId: 1, categoryId: 1 }, unique: true }
     ])
     console.log('done!')
 
@@ -83,6 +83,9 @@ module.exports = async (arg, config) => {
       { name: 'companyId_customerId_movementId_externalId_departmentId_categoryId', key: { companyId: 1, customerId: 1, movementId: 1, externalId: 1, departmentId: 1, categoryId: 1 }, unique: true }
     ])
     console.log('done!')
+  } catch (error) {
+    console.error(error)
+    process.exit(1)
   } finally {
     await mongodb.disconnect()
   }

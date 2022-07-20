@@ -62,18 +62,18 @@ module.exports = ({
 
   const getAuxiliaryRecords = async (credentials) => {
     const [
+      omieBanks,
       omieCnae,
-      omieEntryOrigins,
       omieDocumentTypes
     ] = await Promise.all([
+      omieService.getBanks(credentials),
       omieService.getCnae(credentials),
-      omieService.getEntryOrigins(credentials),
       omieService.getDocumentTypes(credentials)
     ])
 
     return {
+      omieBanks,
       omieCnae,
-      omieEntryOrigins,
       omieDocumentTypes
     }
   }
@@ -126,8 +126,8 @@ module.exports = ({
     logger.info({ title: 'Ingestion Performer', message: `Ingestion started for company ${companyId} - ${name}` })
 
     const {
+      omieBanks,
       omieCnae,
-      omieEntryOrigins,
       omieDocumentTypes
     } = await getAuxiliaryRecords(credentials)
 
@@ -147,6 +147,7 @@ module.exports = ({
       companyId,
       omieMappings,
       repositories,
+      omieBanks,
       omieCnae,
       emptyRecordsIds,
       makeEmptyRecord,
@@ -161,7 +162,6 @@ module.exports = ({
       companyId,
       omieMappings,
       repositories,
-      omieEntryOrigins,
       omieDocumentTypes,
       emptyRecordsIds,
       makeEmptyRecord,
