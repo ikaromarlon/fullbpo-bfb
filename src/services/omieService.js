@@ -1,7 +1,7 @@
 const omieErrorHandler = require('./utils/omieErrorHandler')
 const makeOmieRequest = require('./utils/makeOmieRequest')
 const { services: { omie: { apiBaseUrl } } } = require('../config')
-const { isoDateToBR } = require('../utils/helpers')
+const { isoDateToBR } = require('../common/helpers')
 
 module.exports = ({ requester }) => {
   const defaultPagination = { pageNumber: 1, recordsPerPage: 500 }
@@ -223,6 +223,77 @@ module.exports = ({ requester }) => {
     }
   }
 
+  const createDepartment = async ({ appKey, appSecret }, { externalParentId, description }, forceThrow = defaultForceThrow) => {
+    const url = `${apiBaseUrl}/geral/departamentos/`
+
+    const body = {
+      call: 'IncluirDepartamento',
+      app_key: appKey,
+      app_secret: appSecret,
+      param: [{
+        codigo: externalParentId,
+        descricao: description
+      }]
+    }
+
+    try {
+      const response = await makeOmieRequest({ requester, method: 'post', url, body })
+      return {
+        ...response,
+        codigo: String(Number(response.codigo)),
+        descricao: description,
+        inativo: 'N'
+      }
+    } catch (error) {
+      return omieErrorHandler(error, null, forceThrow)
+    }
+  }
+
+  const updateDepartment = async ({ appKey, appSecret }, { externalId, description }, forceThrow = defaultForceThrow) => {
+    const url = `${apiBaseUrl}/geral/departamentos/`
+
+    const body = {
+      call: 'AlterarDepartamento',
+      app_key: appKey,
+      app_secret: appSecret,
+      param: [{
+        codigo: externalId,
+        descricao: description
+      }]
+    }
+
+    try {
+      const response = await makeOmieRequest({ requester, method: 'post', url, body })
+      return {
+        ...response,
+        codigo: String(Number(response.codigo)),
+        descricao: description
+      }
+    } catch (error) {
+      return omieErrorHandler(error, null, forceThrow)
+    }
+  }
+
+  const deleteDepartment = async ({ appKey, appSecret }, { externalId }, forceThrow = defaultForceThrow) => {
+    const url = `${apiBaseUrl}/geral/departamentos/`
+
+    const body = {
+      call: 'ExcluirDepartamento',
+      app_key: appKey,
+      app_secret: appSecret,
+      param: [{
+        codigo: externalId
+      }]
+    }
+
+    try {
+      const response = await makeOmieRequest({ requester, method: 'post', url, body })
+      return response
+    } catch (error) {
+      return omieErrorHandler(error, null, forceThrow)
+    }
+  }
+
   const getProjects = async ({ appKey, appSecret }, params = {}, forceThrow = defaultForceThrow) => {
     const url = `${apiBaseUrl}/geral/projetos/`
 
@@ -289,13 +360,17 @@ module.exports = ({ requester }) => {
         nRegPorPagina: defaultPagination.recordsPerPage
       }]
     }
-    if (params.startDate) {
-      body.param[0].dInclusaoInicial = isoDateToBR(params.startDate)[0]
-      body.param[0].dAlteracaoInicial = isoDateToBR(params.startDate)[0]
+    if (params.createdFrom) {
+      body.param[0].dInclusaoInicial = isoDateToBR(params.createdFrom)[0]
     }
-    if (params.endDate) {
-      body.param[0].dInclusaoFinal = isoDateToBR(params.endDate)[0]
-      body.param[0].dAlteracaoFinal = isoDateToBR(params.endDate)[0]
+    if (params.createdTo) {
+      body.param[0].dInclusaoFinal = isoDateToBR(params.createdTo)[0]
+    }
+    if (params.updatedFrom) {
+      body.param[0].dAlteracaoInicial = isoDateToBR(params.updatedFrom)[0]
+    }
+    if (params.updatedTo) {
+      body.param[0].dAlteracaoFinal = isoDateToBR(params.updatedTo)[0]
     }
 
     const propertiesMapping = { data: 'cadastros', pagination: { currentPage: 'nPagina', totalPages: 'nTotPaginas' } }
@@ -530,13 +605,17 @@ module.exports = ({ requester }) => {
         nRegPorPagina: defaultPagination.recordsPerPage
       }]
     }
-    if (params.startDate) {
-      body.param[0].dDtIncDe = isoDateToBR(params.startDate)[0]
-      body.param[0].dDtAltDe = isoDateToBR(params.startDate)[0]
+    if (params.createdFrom) {
+      body.param[0].dDtIncDe = isoDateToBR(params.createdFrom)[0]
     }
-    if (params.endDate) {
-      body.param[0].dDtIncAte = isoDateToBR(params.endDate)[0]
-      body.param[0].dDtAltAte = isoDateToBR(params.endDate)[0]
+    if (params.createdTo) {
+      body.param[0].dDtIncAte = isoDateToBR(params.createdTo)[0]
+    }
+    if (params.updatedFrom) {
+      body.param[0].dDtAltDe = isoDateToBR(params.updatedFrom)[0]
+    }
+    if (params.updatedTo) {
+      body.param[0].dDtAltAte = isoDateToBR(params.updatedTo)[0]
     }
 
     const propertiesMapping = { data: 'pagamentos', pagination: { currentPage: 'nPagina', totalPages: 'nTotPaginas' } }
@@ -561,13 +640,17 @@ module.exports = ({ requester }) => {
         nRegPorPagina: defaultPagination.recordsPerPage
       }]
     }
-    if (params.startDate) {
-      body.param[0].dDtIncDe = isoDateToBR(params.startDate)[0]
-      body.param[0].dDtAltDe = isoDateToBR(params.startDate)[0]
+    if (params.createdFrom) {
+      body.param[0].dDtIncDe = isoDateToBR(params.createdFrom)[0]
     }
-    if (params.endDate) {
-      body.param[0].dDtIncAte = isoDateToBR(params.endDate)[0]
-      body.param[0].dDtAltAte = isoDateToBR(params.endDate)[0]
+    if (params.createdTo) {
+      body.param[0].dDtIncAte = isoDateToBR(params.createdTo)[0]
+    }
+    if (params.updatedFrom) {
+      body.param[0].dDtAltDe = isoDateToBR(params.updatedFrom)[0]
+    }
+    if (params.updatedTo) {
+      body.param[0].dDtAltAte = isoDateToBR(params.updatedTo)[0]
     }
 
     const propertiesMapping = { data: 'itens', pagination: { currentPage: 'nPagina', totalPages: 'nTotPaginas' } }
@@ -636,13 +719,17 @@ module.exports = ({ requester }) => {
         nRegPorPagina: defaultPagination.recordsPerPage
       }]
     }
-    if (params.startDate) {
-      body.param[0].dDtIncDe = isoDateToBR(params.startDate)[0]
-      body.param[0].dDtAltDe = isoDateToBR(params.startDate)[0]
+    if (params.createdFrom) {
+      body.param[0].dDtIncDe = isoDateToBR(params.createdFrom)[0]
     }
-    if (params.endDate) {
-      body.param[0].dDtIncAte = isoDateToBR(params.endDate)[0]
-      body.param[0].dDtAltAte = isoDateToBR(params.endDate)[0]
+    if (params.createdTo) {
+      body.param[0].dDtIncAte = isoDateToBR(params.createdTo)[0]
+    }
+    if (params.updatedFrom) {
+      body.param[0].dDtAltDe = isoDateToBR(params.updatedFrom)[0]
+    }
+    if (params.updatedTo) {
+      body.param[0].dDtAltAte = isoDateToBR(params.updatedTo)[0]
     }
     if (params.type) {
       body.param[0].cNatureza = params.type
@@ -676,13 +763,17 @@ module.exports = ({ requester }) => {
         cExibirDepartamentos: 'S'
       }]
     }
-    if (params.startDate) {
-      body.param[0].dDtIncDe = isoDateToBR(params.startDate)[0]
-      body.param[0].dDtAltDe = isoDateToBR(params.startDate)[0]
+    if (params.createdFrom) {
+      body.param[0].dDtIncDe = isoDateToBR(params.createdFrom)[0]
     }
-    if (params.endDate) {
-      body.param[0].dDtIncAte = isoDateToBR(params.endDate)[0]
-      body.param[0].dDtAltAte = isoDateToBR(params.endDate)[0]
+    if (params.createdTo) {
+      body.param[0].dDtIncAte = isoDateToBR(params.createdTo)[0]
+    }
+    if (params.updatedFrom) {
+      body.param[0].dDtAltDe = isoDateToBR(params.updatedFrom)[0]
+    }
+    if (params.updatedTo) {
+      body.param[0].dDtAltAte = isoDateToBR(params.updatedTo)[0]
     }
 
     const propertiesMapping = { data: 'movimentos', pagination: { currentPage: 'nPagina', totalPages: 'nTotPaginas' } }
@@ -705,6 +796,9 @@ module.exports = ({ requester }) => {
     getCustomers,
     getCategories,
     getDepartments,
+    createDepartment,
+    updateDepartment,
+    deleteDepartment,
     getProjects,
     getProducts,
     getServices,

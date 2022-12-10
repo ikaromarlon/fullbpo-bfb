@@ -7,10 +7,10 @@ Resources:
       FifoQueue: true
       ContentBasedDeduplication: true
       DeduplicationScope: queue
-      MessageRetentionPeriod: 43200 # 12h
-      ReceiveMessageWaitTimeSeconds: 20
+      MessageRetentionPeriod: 60 # 1min
+      ReceiveMessageWaitTimeSeconds: 0
       VisibilityTimeout: ${self:functions.ingestionPerformer.timeout}
-
+  
   DataExportQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -18,16 +18,35 @@ Resources:
       FifoQueue: true
       ContentBasedDeduplication: true
       DeduplicationScope: queue
-      MessageRetentionPeriod: 43200 # 12h
-      ReceiveMessageWaitTimeSeconds: 20
+      MessageRetentionPeriod: 60 # 1min
+      ReceiveMessageWaitTimeSeconds: 0
       VisibilityTimeout: ${self:functions.dataExport.timeout}
 
   DataExportBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: ${self:custom.basename}-data-export-bucket
+      BucketName: ${self:custom.basename}-data-export
+  
+  DataProcessingQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ${self:custom.basename}-dataProcessing-queue.fifo
+      FifoQueue: true
+      ContentBasedDeduplication: true
+      DeduplicationScope: queue
+      MessageRetentionPeriod: 60 # 1min
+      ReceiveMessageWaitTimeSeconds: 20
+      VisibilityTimeout: ${self:functions.dataProcessing.timeout}
 
 Outputs:
+  RestApiUrl:
+    Value: { 'Fn::Join': [ '', [ 'https://', { 'Ref' : 'ApiGatewayRestApi' }, '.execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}' ] ] }
+    Export:
+      Name: ${self:custom.basename}:RestApiUrl
+  ApiKey:
+    Value: ${self:custom.appApiKey.${self:provider.stage}}
+    Export:
+      Name: ${self:custom.basename}:ApiKey
   IngestionQueueArn:
     Value: !GetAtt IngestionQueue.Arn
     Export:
@@ -44,3 +63,12 @@ Outputs:
     Value: !Ref DataExportBucket
     Export:
       Name: ${self:custom.basename}:DataExportBucketName
+
+  DataProcessingQueueArn:
+    Value: !GetAtt DataProcessingQueue.Arn
+    Export:
+      Name: ${self:custom.basename}:DataProcessingQueueArn
+  DataProcessingQueueUrl:
+    Value: !Ref DataProcessingQueue
+    Export:
+      Name: ${self:custom.basename}:DataProcessingQueueUrl
