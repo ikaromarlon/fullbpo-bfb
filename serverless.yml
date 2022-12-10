@@ -1,4 +1,4 @@
-service: full-bpo-bfb
+service: fullbpo-bfb
 frameworkVersion: '3'
 useDotenv: true
 configValidationMode: error
@@ -13,19 +13,39 @@ provider:
   apiName: ${self:custom.basename}
   memorySize: 128
   timeout: 30
-  logRetentionInDays: 3
+  logRetentionInDays: 7
   deploymentBucket:
     name: ${self:custom.accountId}-deployment-artifacts-${self:provider.region}
     blockPublicAccess: true
     maxPreviousDeploymentArtifacts: 5
   deploymentPrefix: serverless
   versionFunctions: false
-  environment: ${file(./serverless/env.yml)}
+  environment:
+    SERVICE: ${self:service}
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    DOMAIN: ${self:custom.domain}
+    MONGODB_URI: ${env:MONGODB_URI}
+    SQS_INGESTION_QUEUE_URL: { 'Ref': 'IngestionQueue'}
+    SQS_DATA_EXPORT_QUEUE_URL: { 'Ref': 'DataExportQueue'}
+    S3_DATA_EXPORT_BUCKET_NAME: { 'Ref': 'DataExportBucket'}
+    SES_REGION: ${self:custom.sesRegion}
+    FLAG_LOG_EACH_OMIE_ERROR: ${self:custom.env.FLAG_LOG_EACH_OMIE_ERROR.${self:provider.stage}}
+    FLAG_UPDATE_EMPTY_RECORDS: ${self:custom.env.FLAG_UPDATE_EMPTY_RECORDS.${self:provider.stage}}
+    ERROR_NOTIFICATION_RECIPIENT_ADDRESS: ${self:custom.env.ERROR_NOTIFICATION_RECIPIENT_ADDRESS.${self:provider.stage}}
+    ERROR_NOTIFICATION_RECIPIENT_ADDRESS_COPY: ${self:custom.env.ERROR_NOTIFICATION_RECIPIENT_ADDRESS_COPY.${self:provider.stage}}
+  endpointType: EDGE
+  apiGateway:
+    apiKeySourceType: HEADER
+    apiKeys:
+      - name: ${self:custom.basename}
+        value: ${self:custom.appApiKey.${self:provider.stage}}
+        enabled: true
   stackTags:
-    HOLDING: dois
-    COMPANY: full-bpo
-    PROJECT: full-bpo
-    SERVICE: full-bpo-bfb
+    COMPANY: FullBPO
+    PROJECT: FullBPO
+    APP: FullBPO
+    SERVICE: ${self:service}
   iam:
     role:
       statements:
@@ -33,7 +53,7 @@ provider:
           Action:
             - 'ses:SendEmail'
           Resource:
-            - arn:aws:ses:${self:custom.sesRegion}:${self:custom.accountId}:identity/${self:custom.appDomain}
+            - arn:aws:ses:${self:custom.sesRegion}:${self:custom.accountId}:identity/${self:custom.domain}
       name: ${self:custom.basename}-dafault-role
 functions: ${file(./serverless/functions.yml)}
 resources: ${file(./serverless/resources.yml)}
@@ -45,8 +65,9 @@ package:
     - '!**'
     - 'node_modules/**'
     - 'src/**'
-    - '!src/functions/**'
+    - '!src/v1/**'
     - 'package.json'
 plugins:
   - serverless-iam-roles-per-function
   - serverless-cloudside-plugin
+  - serverless-offline

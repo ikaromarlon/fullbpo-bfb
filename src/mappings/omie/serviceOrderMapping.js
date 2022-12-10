@@ -1,4 +1,7 @@
-module.exports = ({ providerName, helpers: { brDateToISO, multiply } }) => ({
+const { ORDER_TYPES } = require('../../common/enums')
+const { brDateToISO, multiply } = require('../../common/helpers')
+
+module.exports = ({ providerName }) => ({
   omieOrder,
   omieOrderDepartment,
   omieOrderItem,
@@ -35,7 +38,7 @@ module.exports = ({ providerName, helpers: { brDateToISO, multiply } }) => ({
     cfop: null, /** only for PEDIDO */
     municipalServiceCode: omieOrderItem.cCodServMun || null,
     contractId: contractId ?? emptyRecordsIds.contract,
-    type: 'OS',
+    type: ORDER_TYPES.SERVICE_ORDER,
     registerDate: brDateToISO(omieOrder.InfoCadastro.dDtInc, omieOrder.InfoCadastro.cHrInc),
     expectedPaymentDate: brDateToISO(omieOrder.Cabecalho.dDtPrevisao),
     grossValue: multiply(omieOrderItem.nValUnit, perc),

@@ -1,10 +1,16 @@
-const { name, version } = require('../../package.json')
+const { version, name } = require('../../package.json')
 const { env } = process
+
+const service = env.SERVICE ?? name
+const stage = env.STAGE ?? 'dev'
+const source = `${service}-${stage}`
 
 module.exports = Object.freeze({
   app: {
-    name: env.SERVICE || name,
-    stage: env.STAGE || 'dev',
+    name: 'FullBPO',
+    service,
+    stage,
+    source,
     version,
     user: 'SYSTEM',
     charset: 'UTF-8',
@@ -12,7 +18,7 @@ module.exports = Object.freeze({
   },
   mongodb: {
     uri: env.MONGODB_URI,
-    dbName: env.MONGODB_DB_NAME
+    dbName: `fullbpo-${stage}`
   },
   SQS: {
     ingestionQueueUrl: env.SQS_INGESTION_QUEUE_URL,
@@ -29,15 +35,13 @@ module.exports = Object.freeze({
   services: {
     omie: {
       providerName: 'Omie',
-      /** days back */
-      ingestionPeriod: 2,
+      ingestionPeriod: 3, /** days back */
       apiBaseUrl: 'https://app.omie.com.br/api/v1',
-      maxRequestPerPeriod: 200,
-      /** in seconds */
-      requestPeriod: 60
+      maxRequestPerPeriod: 200, /** in seconds */
+      requestPeriod: 60 /** in seconds */
     },
     mailer: {
-      defaultSender: `no-reply@${env.APP_DOMAIN}`,
+      defaultSender: `no-reply@${env.DOMAIN}`,
       errorNotificationRecipientAddress: env.ERROR_NOTIFICATION_RECIPIENT_ADDRESS || '',
       errorNotificationRecipientAddressCopy: env.ERROR_NOTIFICATION_RECIPIENT_ADDRESS_COPY || ''
     }

@@ -1,4 +1,7 @@
-module.exports = ({ providerName, helpers: { brDateToISO, multiply } }) => ({
+const { PRODUCT_TYPES } = require('../../common/enums')
+const { brDateToISO, multiply } = require('../../common/helpers')
+
+module.exports = ({ providerName }) => ({
   omieContract,
   omieContractDepartment,
   omieContractItem,
@@ -35,7 +38,7 @@ module.exports = ({ providerName, helpers: { brDateToISO, multiply } }) => ({
     categoryId: categoryId ?? emptyRecordsIds.category,
     departmentId: departmentId ?? emptyRecordsIds.department,
     departmentPercentage,
-    type: 'SERVICO',
+    type: PRODUCT_TYPES.SERVICE,
     municipalServiceCode: omieContractItem.itemCabecalho.codServMunic || null,
     registerDate: brDateToISO(omieContract.infoCadastro.dInc, omieContract.infoCadastro.hInc),
     startDate: brDateToISO(omieContract.cabecalho.dVigInicial),
