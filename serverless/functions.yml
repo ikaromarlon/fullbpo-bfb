@@ -1,5 +1,6 @@
 registerOmieCompany:
   handler: src/index.handler
+  timeout: 30
   iamRoleStatementsName: ${self:custom.basename}-registerOmieCompany-role
   events:
     # - schedule: ${self:custom.functionsWarmUpScheduledEvent}
@@ -14,26 +15,26 @@ registerOmieCompany:
 
 omieWebhook:
   handler: src/index.handler
+  timeout: ${self:provider.timeout}
   iamRoleStatementsName: ${self:custom.basename}-omieWebhook-role
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - events:PutEvents
-      Resource: '*' # set permission to eventbus default or create new one
+        - sqs:SendMessage
+      Resource:
+        - Fn::GetAtt: [ DataExportQueue, Arn ]
   events:
-    # - schedule: ${self:custom.functionsWarmUpScheduledEvent}
-    - eventBridge:
-        pattern:
-          source:
-            - ${self:custom.fullbpoApiSourceName}
-          detail-type:
-            - ${self:custom.basename}.omieWebhook
+    - sqs:
+        arn:
+          Fn::GetAtt: [ OmieWebhookQueue, Arn ]
+        batchSize: 1
   package:
     patterns:
       - 'src/v1/omieWebhook/**'
 
 deleteDataByCompany:
   handler: src/index.handler
+  timeout: 30
   iamRoleStatementsName: ${self:custom.basename}-deleteDataByCompany-role
   iamRoleStatements:
     - Effect: Allow
@@ -85,9 +86,8 @@ ingestionPerformer:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - sqs:SendMessage
-      Resource:
-        - Fn::GetAtt: [ DataExportQueue, Arn ]
+        - events:PutEvents
+      Resource: '*' # set permission to eventbus default or create new one
   events:
     - sqs:
         arn:

@@ -5,14 +5,14 @@ configValidationMode: error
 deprecationNotificationMode: error
 provider:
   name: aws
-  runtime: nodejs16.x
+  runtime: nodejs18.x
   stage: ${opt:stage, 'dev'}
   region: ${self:custom.region.${self:provider.stage}}
   profile: fullbpo
   stackName: ${self:custom.basename}
   apiName: ${self:custom.basename}
   memorySize: 128
-  timeout: 30
+  timeout: 60
   logRetentionInDays: 7
   deploymentBucket:
     name: ${self:custom.accountId}-deployment-artifacts-${self:provider.region}

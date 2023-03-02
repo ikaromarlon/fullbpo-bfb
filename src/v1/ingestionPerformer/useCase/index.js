@@ -8,7 +8,7 @@ module.exports = ({
   omieService,
   omieMappings,
   repositories,
-  queuer,
+  eventBridge,
   logger
 }) => {
   const getAuxiliaryRecords = async (credentials) => {
@@ -41,13 +41,15 @@ module.exports = ({
   }
 
   return async ({ payload }) => {
-    const company = await repositories.companies.findOne({ _id: payload.companyId })
+    const { companyId } = payload
+
+    const company = await repositories.companies.findOne({ _id: companyId })
 
     if (!company) {
-      throw new NotFoundError(`Company ${payload.companyId} not found`)
+      throw new NotFoundError(`Company ${companyId} not found`)
     }
     if (company.isActive !== true) {
-      throw new ValidationError(`Company ${payload.companyId} is not active`)
+      throw new ValidationError(`Company ${companyId} is not active`)
     }
 
     let { startDate, endDate } = payload
@@ -56,8 +58,6 @@ module.exports = ({
       startDate = new Date()
       startDate.setMilliseconds(startDate.getMilliseconds() - daysToMilliseconds(config.services.omie.ingestionPeriod))
     }
-
-    const { _id: companyId, name, credentials } = company
 
     const emptyRecordsIds = {
       category: uuidFrom(`${companyId}-category`),
@@ -73,6 +73,8 @@ module.exports = ({
       accountReceivable: uuidFrom(`${companyId}-accountReceivable`),
       financialMovement: uuidFrom(`${companyId}-financialMovement`)
     }
+
+    const { name, credentials } = company
 
     logger.info({
       title: 'ingestionPerformer',
@@ -124,7 +126,7 @@ module.exports = ({
       message: `Ingestion completed for company ${companyId} - ${name}`
     })
 
-    await queuer.sendCompanyToDataExportQueue(companyId)
+    await eventBridge.triggerBfbDataExport(companyId)
 
     logger.info({
       title: 'ingestionPerformer',
